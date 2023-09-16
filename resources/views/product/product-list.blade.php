@@ -15,6 +15,7 @@
         <thead>
           <tr>
             <th>No</th>
+            <th>Image</th>
             <th>Name</th>
             <th>Price</th>
             <th>Description</th>
@@ -57,6 +58,12 @@
                 <label>Description</label>
                 <textarea name="description" cols="30" rows="10" class="form-control"></textarea>
               </div>
+              
+              <div class="form-group">
+                <label>Image</label>
+                <input type="file" name="image">
+              </div>
+              
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -99,6 +106,13 @@
                 <label>Description</label>
                 <textarea name="description" cols="30" rows="10" class="form-control"></textarea>
               </div>
+             
+              <div class="form-group">
+                <label>Image</label>
+                <input type="file" name="image">
+                <img class="product-img" style="display:none;" src="" width="100px" height="100px"/> 
+              </div>
+              
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -130,6 +144,9 @@
       columns: [{
         data: 'DT_RowIndex', name: 'DT_RowIndex'
       },
+        {
+          data: 'fullimage', name: 'fullimage'
+        },
         {
           data: 'name', name: 'name'
         },
@@ -175,16 +192,22 @@
         success: function(response) {
           if(response.error){
             var htmldata = "<ul>";
+             if(response.message){
+               htmldata += "<li>"+response.message+"</li>";
+             }
              $.each(response.data,function(key,value){
                htmldata += "<li>"+value+"</li>";
              });
+             
              htmldata  += "</ul>";
+             
              $(`#${modalId} .error-message`).html(htmldata);
           } else {
             $('.ajax-success-alert').show().text(response.message);
             $(`#${modalId} .modal-footer button[data-bs-dismiss]`).trigger('click');
             currenSelector.trigger('reset');
             dataTable.clear().draw();
+            
           }
         },
         error: function(xhr, status, error) {
@@ -194,14 +217,22 @@
     }
    
      $(document).on('click','.edit-product',function(){
+      $('.product-img').hide();
        $.ajax({
         url: $(this).attr('data-editurl'),
         type: "GET",
         success: function(response) {
           $('#edit-product-form input, #edit-product-form textarea , #edit-product-form select').each(function(key,value ){
             var inputName = $(value).attr('name');
-            $(value).val(response.data[inputName]);
+            if(inputName != "image"){
+               $(value).val(response.data[inputName]);
+            }
           });
+          
+          if(response.data.image){
+              $('.product-img').show();
+              $('.product-img').attr('src',response.data.fullimage);
+          }
           var editUrl = $('#edit-product-form').attr('action');
           var newUrl = editUrl.replace('%ID%',response.data.id);
           $('#edit-product-form').attr('action',newUrl);
